@@ -1,0 +1,41 @@
+name: Deploy React Frontend to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # THIS IS THE MAGIC STEP: It creates the .env file dynamically
+      - name: Inject Environment Variables
+        run: |
+          echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" >> .env
+          echo "VITE_GOOGLE_API_KEY=${{ secrets.VITE_GOOGLE_API_KEY }}" >> .env
+          echo "VITE_LOCATIONIQ_API_KEY=${{ secrets.VITE_LOCATIONIQ_API_KEY }}" >> .env
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build React App
+        run: npm run build
+
+      - name: Deploy to EC2 Nginx Folder
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "build/*"
+          target: "/var/www/html/encargoweb_dev"
+          strip_components: 1 # This prevents it from creating an extra 'build' folder on the server
