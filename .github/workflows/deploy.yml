@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '30'
 
-      # THIS IS THE --------MAGIC STEP--------: It creates the .env file dynamically
+      # THIS IS THE MAGIC STEP: It creates the .env file dynamically
       - name: Inject Environment Variables
         run: |
           echo "VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}" >> .env
@@ -28,7 +28,7 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build React App
-        run: npm run start
+        run: npm run build
 
       - name: Deploy to EC2 Nginx Folder
         uses: appleboy/scp-action@v0.1.4
